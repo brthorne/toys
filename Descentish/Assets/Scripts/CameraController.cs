@@ -4,6 +4,7 @@ using System.Collections;
 public class CameraController : MonoBehaviour {
 	public float translateSpeed = 5;
 	public float rotateSpeed = 30;
+	public float heightChangeSpeed = .5f;
 
 
 	// Use this for initialization
@@ -43,6 +44,15 @@ public class CameraController : MonoBehaviour {
 			                                     transform.eulerAngles.y - rotateSpeed,
 			                                     transform.eulerAngles.z);
 			transform.eulerAngles = targetRotation;
+		}
+		float scroll = Input.GetAxisRaw(Inputs.CameraUpDown.ToString());
+		if(scroll > 0){
+			transform.position = transform.position + 
+				new Vector3(0, heightChangeSpeed, 0);
+		}
+		if(scroll < 0){
+			transform.position = transform.position - 
+				new Vector3(0, heightChangeSpeed, 0);
 		}
 	}
 }
