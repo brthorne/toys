@@ -7,12 +7,18 @@ public class BoardController : MonoBehaviour {
 	public GameObject tileWall;
 	public GameObject playerType;
 	public GameObject monsterType;
+	public Material tileHighlight;
+	public Material tileDefault;
 
-	public int width=8;
-	public int depth=8;
+
+	public int width=800;
+	public int depth=800;
 	public const float BOARD_HEIGHT = 0;
-	int? playerSelectionIndex;
 
+
+	int? playerSelectionIndex;
+	GameObject player;
+	PlayerController playerController;
 
 	// Use this for initialization
 	void Start () {
@@ -59,8 +65,26 @@ public class BoardController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		int? oldPlayerSelectionIndex = playerSelectionIndex;
 		select();
+		if(playerSelectionIndex.HasValue && !oldPlayerSelectionIndex.HasValue ||
+		   playerSelectionIndex.HasValue && oldPlayerSelectionIndex.HasValue &&
+		   playerSelectionIndex != oldPlayerSelectionIndex){//we just selected something.  not good enough.  
+			//need to also change on player moving and depleting distance movable this turn
+			//color the movable area
+			colorMovableTiles(player.transform.position,playerController.speed);
+		}
 
+	}
+
+	private void colorMovableTiles(Vector3 playerPosition, int distance){
+		List<GameObject> tiles = Layers.GetLayerObjects(Layer.BaseTerrain);
+		foreach(GameObject tile in tiles){
+			if(Vector3.Distance(tile.transform.position,playerPosition) < 2 * distance){
+				tile.renderer.material = tileHighlight;
+			}
+			else{ tile.renderer.material = tileDefault;}
+		}
 	}
 
 	private void select(){
@@ -71,18 +95,23 @@ public class BoardController : MonoBehaviour {
 				playerSelectionIndex = 0;
 			}else if(playerSelectionIndex == players.Count - 1){
 				//reset to unselected texture
-				players[playerSelectionIndex.Value].GetComponent<PlayerController>().SetActiveSkin(Skin.Default);
 				playerSelectionIndex = 0;
-
+				playerController.SetActiveSkin(Skin.Default);
 			}else{
-				players[playerSelectionIndex.Value].GetComponent<PlayerController>().SetActiveSkin(Skin.Default);
 				playerSelectionIndex++;
+				playerController.SetActiveSkin(Skin.Default);
 			}
-			GameObject player = players[playerSelectionIndex.Value];
+			player = players[playerSelectionIndex.Value];
 			Debug.Log("player #" + playerSelectionIndex.Value + " @" + player.transform.position.ToString());			
-			PlayerController controller = player.GetComponent<PlayerController>();
-			controller.SetActiveSkin(Skin.Selected);
+			playerController = player.GetComponent<PlayerController>();
+			playerController.SetActiveSkin(Skin.Selected);
 
 		}
+	}
+
+	private void endTurn(){
+		playerSelectionIndex = null;
+		player = null;
+		playerController = null;
 	}
 }
